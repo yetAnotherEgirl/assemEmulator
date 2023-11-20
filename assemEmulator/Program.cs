@@ -1,4 +1,9 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.ComponentModel;
+using System.Text.RegularExpressions;
+using System.IO;
+using System.Runtime.CompilerServices;
+
+//https://filestore.aqa.org.uk/resources/computing/AQA-75162-75172-ALI.PDF
 
 namespace assemEmulator;
 
@@ -6,24 +11,25 @@ class Program {
     static void Main(string[] args) {
         Assembler assembler = new Assembler();
 
-        Memory ram = new Memory(5);
+        Memory ram = new Memory(7);
         CPU cpu = new CPU(ref ram);
 
-        List<int> machineCode = new List<int>();
+        List<long> machineCode = new List<long>();
         
-        string assembly = "LDR r1 3 \nSTR r1 5";
+        string assembly = System.IO.File.ReadAllText("assembly.aqa");
         assembler.AssembleFromString(assembly);
-
         machineCode = assembler.GetMachineCode();
+
         ram.LoadMachineCode(machineCode);
+        cpu.FetchDecodeExecCycle();
 
-        ram.setAddress(3, 5);
+        ram.DumpMemory("memory");
+        cpu.DumpRegisters("registers");
+    }
 
-        for(int i = 0; i < machineCode.Count; i++) {
-            cpu.FetchDecodeExecCycle();
-        }
 
-        ram.DumpMemory("memoryDump.txt");
+    static void WriteHex(long input) {
+        Console.WriteLine(input.ToString("X16"));
     }
 }
 

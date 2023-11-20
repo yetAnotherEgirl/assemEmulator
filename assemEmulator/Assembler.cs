@@ -6,12 +6,10 @@ namespace assemEmulator;
 
 
 class Assembler {
-    public readonly string[] instructionSet = {"LDR", "STR"};
-    private const char commentChar = ';';
-    private const char decimalChar = '#';
-    private const char registerChar = 'r';
+    
+    public readonly string[] instructionSet = {"LDR", "STR", "ADD"};
 
-    List<int> machineCode = new List<int>();
+    List<long> machineCode = new List<long>();
 
     public Assembler() {
         
@@ -25,83 +23,98 @@ class Assembler {
         }
     }
 
-    AssembledLine assembleLine(string assemblyLine) {
+    
+
+    public long AssembleOpCode (int opCode) {    
+        if (opCode == -1) throw new System.ArgumentException("invalid OpCode");
+        long output = ((long)opCode) << Constants.opCodeOffset * Constants.bitsPerNibble;
+
+        return output;
+    }
+
+    public long AssembleRegister(string register, int registerOffsetIndex = 0) {
+        if (register[0] != Constants.registerChar) throw new System.ArgumentException("invalid register");
+        int registerAddress = 0;
+        try {
+            registerAddress = int.Parse(register.Substring(1));
+        } catch {
+            throw new System.ArgumentException("invalid register");
+        }
+        int CurrentRegisterOffset = Constants.registerOffset + registerOffsetIndex;
+        if (registerAddress < 0 || registerAddress > 15) throw new System.ArgumentException("invalid register address");
+        long output = ((long)registerAddress) << CurrentRegisterOffset * Constants.bitsPerNibble;
+
+        return output;
+    }
+
+    public long AssembleOpperand (string opperand) {
+        long output = 1;
+    
+
+        if (opperand[0] == Constants.decimalChar) {
+            output = 0;
+            try {
+                output = long.Parse(opperand.Substring(1));
+            } catch {
+                throw new System.ArgumentException("invalid decimal opperand");
+            }
+        }
+        else{
+            output <<= Constants.signBitOffset * Constants.bitsPerNibble;  
+            try {
+                output += long.Parse(opperand);
+            } 
+            catch {
+                throw new System.ArgumentException("invalid opperand");
+            }
+        }
+
+ 
+        return output;
+    }
+ 
+    public long AssembleMemoryReference(string memory) {
+        long memoryReference = -1;
+        try {
+            memoryReference = AssembleOpperand(memory);
+        } catch {
+            throw new System.ArgumentException("invalid memory reference");
+        }
+        if (memoryReference < 0) throw new System.ArgumentException("invalid memory reference, must be positive");
+        return memoryReference;
+    }
+
+    public long CompileAssemblyLine(string assemblyLine) {
         if (string.IsNullOrEmpty(assemblyLine)) throw new System.ArgumentException("empty string passed to assembleLine");
         
         {
-            int commentStart = assemblyLine.IndexOf(commentChar);
+            int commentStart = assemblyLine.IndexOf(Constants.commentChar);
             if (commentStart != -1) assemblyLine = assemblyLine.Substring(0, commentStart);
         }
 
         string[] splitLine = assemblyLine.Split(' ');
         if (Array.IndexOf(splitLine, "") != -1) splitLine = splitLine.Where(x => x != "").ToArray();
-        int instruction = Array.IndexOf(instructionSet, splitLine[0]) + 1;
-        
-        AssembledLine assembledLine = new AssembledLine();
-        assembledLine.instruction = instruction;
-        
-        switch (instruction) {
-            case -1:
-                throw new System.ArgumentException("invalid instruction passed to assembleLine");
 
-            case 0: //LDR
-                if (splitLine.Length != 3) throw new System.ArgumentException("invalid number of arguments passed to assembleLine");
-                if (!splitLine[1].StartsWith(registerChar)) throw new System.ArgumentException("invalid argument passed to assembleLine, first argument should be a register");
-                               
-                try {
-                    int address = int.Parse(splitLine[2]);
-                }
-                catch (System.FormatException) {
-                    throw new System.ArgumentException("invalid argument passed to assembleLine, second argument should be a memory address");
-                }
-                assembledLine.arguments = new List<int> {int.Parse(splitLine[1].Substring(1)), int.Parse(splitLine[2])};
+        int opCode = Array.IndexOf(instructionSet, splitLine[0]) + 1;
+
+        long output = 0;
+
+        output += AssembleOpCode(opCode);
+
+        switch (opCode)
+        {
+            case 1:
+                output += AssembleRegister(splitLine[1]);
+                output += AssembleMemoryReference(splitLine[2]);
                 break;
-            case 1: //STR
-                if (splitLine.Length != 3) throw new System.ArgumentException("invalid number of arguments passed to assembleLine");
-                if (!splitLine[1].StartsWith(registerChar)) throw new System.ArgumentException("invalid argument passed to assembleLine, first argument should be a register");
-                                
-                try {
-                    int address = int.Parse(splitLine[2]);
-                }
-                catch (System.FormatException) {
-                    throw new System.ArgumentException("invalid argument passed to assembleLine, second argument should be a memory address");
-                }
-                assembledLine.arguments = new List<int> {int.Parse(splitLine[1].Substring(1)), int.Parse(splitLine[2])};
+            case 2:
                 break;
-        }
-        
-        return assembledLine;
-    }
- 
-    private int CompileAssemblyLine(string assemblyLine) {
-        AssembledLine assembledLine = assembleLine(assemblyLine);
-        int output = assembledLine.instruction;
-        foreach (int arg in assembledLine.arguments) {
-            output <<= 8;
-            output += arg;
         }
         return output;
     }
  
-    public List<int> GetMachineCode() {
+    public List<long> GetMachineCode() {
         return machineCode;
     }
  }
 
- struct AssembledLine {
-     public int instruction;
-     public List<int> arguments;
-
-    public AssembledLine() {
-        this.instruction = 0;
-        this.arguments = new List<int>();
-    }
-
-    public override string ToString() {
-        string output = instruction.ToString();
-        foreach (int arg in arguments) {
-            output += " " + arg.ToString();
-        }
-        return output;
-        }
- }
