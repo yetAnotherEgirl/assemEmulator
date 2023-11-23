@@ -23,8 +23,6 @@ class Assembler {
         }
     }
 
-    
-
     public long AssembleOpCode (int opCode) {    
         if (opCode == -1) throw new System.ArgumentException("invalid OpCode");
         long output = ((long)opCode) << Constants.opCodeOffset * Constants.bitsPerNibble;
@@ -108,6 +106,13 @@ class Assembler {
                 output += AssembleMemoryReference(splitLine[2]);
                 break;
             case 2:
+                output += AssembleRegister(splitLine[1]);
+                output += AssembleMemoryReference(splitLine[2]);
+                break;
+            case 3:
+                output += AssembleRegister(splitLine[1]);
+                output += AssembleRegister(splitLine[2], 1);
+                output += AssembleOpperand(splitLine[3]);
                 break;
         }
         return output;

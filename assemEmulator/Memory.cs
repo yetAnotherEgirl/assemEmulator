@@ -7,25 +7,25 @@ class Memory {
         memory = new long[Size];
     }
 
-    public long QuereyAddress(int address) {
+    public long QuereyAddress(long address) {
         return memory[address];
     }
 
-    public void setAddress(int address, long value) {
+    public void SetAddress(long address, long value) {
         if (address > memory.Length) throw new System.ArgumentException("address out of bounds");
         memory[address] = value;
     }
 
-    public void DumpMemory(string path) {
-        const string DumpPath = "dumps";
+    public void DumpMemory(string fileName, string DumpPath = "dumps") {
         string[] memoryDump = new string[memory.Length];
 
         for(int i = 0; i < memory.Length; i++) {
-            memoryDump[i] = $" address {i}: {memory[i]}";
+            string memoryInHex = memory[i].ToString("X");
+            memoryDump[i] = $" address {i}: {memoryInHex}";
         }
         System.IO.Directory.CreateDirectory($"./{DumpPath}");
-        path = DumpPath + "/" + path + ".Dump";
-        File.WriteAllLines(path, memoryDump);
+        fileName = DumpPath + "/" + fileName + ".Dump";
+        File.WriteAllLines(fileName, memoryDump);
     }
 
     public void LoadMachineCode(List<long> code, int address = 0) {
@@ -50,5 +50,9 @@ class Register {
 
     public long GetRegister() {
         return value;
+    }
+
+    public string DumpRegister () {
+        return value.ToString("X");
     }
 }

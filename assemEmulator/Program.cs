@@ -21,15 +21,12 @@ class Program {
         machineCode = assembler.GetMachineCode();
 
         ram.LoadMachineCode(machineCode);
+        ram.SetAddress(5, 10);
+        cpu.FetchDecodeExecCycle();
         cpu.FetchDecodeExecCycle();
 
         ram.DumpMemory("memory");
         cpu.DumpRegisters("registers");
-    }
-
-
-    static void WriteHex(long input) {
-        Console.WriteLine(input.ToString("X16"));
     }
 }
 
