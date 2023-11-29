@@ -89,7 +89,7 @@ class CPU {
             if(instructionRegister.AddressMode == Constants.addressIndicator) {
                 MemoryAddressRegister.SetRegister(instructionRegister.arguments[2]);
                 memoryDataRegister.SetRegister(RAM.QuereyAddress(MemoryAddressRegister.GetRegister()));
-            } if(instructionRegister.AddressMode == Constants.registerIndicator) {
+            } else if(instructionRegister.AddressMode == Constants.registerIndicator) {
                 MemoryAddressRegister.SetRegister(instructionRegister.arguments[2]);
                 memoryDataRegister.SetRegister(registers[MemoryAddressRegister.GetRegister()].GetRegister());
             }
