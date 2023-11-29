@@ -21,9 +21,12 @@ class Program {
         machineCode = assembler.GetMachineCode();
 
         ram.LoadMachineCode(machineCode);
-        ram.SetAddress(5, 10);
-        cpu.FetchDecodeExecCycle();
-        cpu.FetchDecodeExecCycle();
+        ram.SetAddress(4, 1);
+        ram.SetAddress(5, 1);
+
+        for (int i = 0; i < machineCode.Count(); i++) {
+            cpu.FetchDecodeExecCycle();
+        }
 
         ram.DumpMemory("memory");
         cpu.DumpRegisters("registers");

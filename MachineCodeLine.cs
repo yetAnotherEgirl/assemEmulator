@@ -3,17 +3,17 @@ namespace assemEmulator;
 class machineCodeLine {
     public int instruction;
     public List<int> arguments;
-    public bool inAddressMode;
+    public int AddressMode;
 
-    public machineCodeLine(int instruction, List<int> arguments, bool inAddressMode) {
+    public machineCodeLine(int instruction, List<int> arguments, int AddressMode) {
         this.instruction = instruction;
         this.arguments = arguments;
-        this.inAddressMode = inAddressMode;
+        this.AddressMode = AddressMode;
     }
 
     public machineCodeLine() {
         instruction = 0;
         arguments = new List<int>();
-        inAddressMode = false;
+        AddressMode = 0;
     }
 }

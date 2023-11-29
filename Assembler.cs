@@ -7,7 +7,7 @@ namespace assemEmulator;
 
 class Assembler {
     
-    public readonly string[] instructionSet = {"LDR", "STR", "ADD"};
+    public readonly string[] instructionSet = {"LDR", "STR", "ADD", "SUB"};
 
     List<long> machineCode = new List<long>();
 
@@ -46,19 +46,27 @@ class Assembler {
     }
 
     public long AssembleOpperand (string opperand) {
-        long output = 1;
-    
+        long output = Constants.addressIndicator;
 
         if (opperand[0] == Constants.decimalChar) {
-            output = 0;
+            output = Constants.decimalIndicator;
             try {
                 output = long.Parse(opperand.Substring(1));
             } catch {
                 throw new System.ArgumentException("invalid decimal opperand");
             }
         }
+        else if (opperand[0] == Constants.registerChar) {
+            output = Constants.registerIndicator;
+            try {
+                output = long.Parse(opperand.Substring(1));
+            } catch {
+                throw new System.ArgumentException("invalid hex opperand");
+            }
+        }
         else{
-            output <<= Constants.signBitOffset * Constants.bitsPerNibble;  
+            output <<= Constants.signBitOffset * Constants.bitsPerNibble;
+            if(opperand[0]== Constants.registerChar) opperand = opperand.Substring(1); 
             try {
                 output += long.Parse(opperand);
             } 
@@ -66,6 +74,8 @@ class Assembler {
                 throw new System.ArgumentException("invalid opperand");
             }
         }
+
+    
 
  
         return output;
@@ -101,6 +111,8 @@ class Assembler {
 
         switch (opCode)
         {
+            default:
+                throw new System.ArgumentException("invalid OpCode");
             case 1:
                 output += AssembleRegister(splitLine[1]);
                 output += AssembleMemoryReference(splitLine[2]);
@@ -114,6 +126,20 @@ class Assembler {
                 output += AssembleRegister(splitLine[2], 1);
                 output += AssembleOpperand(splitLine[3]);
                 break;
+            case 4:
+                output += AssembleRegister(splitLine[1]);
+                output += AssembleRegister(splitLine[2], 1);
+                output += AssembleOpperand(splitLine[3]);
+                break;
+            // case 5:
+            //     output += AssembleRegister(splitLine[1]);
+            //     bool isRegisterMode = false;
+            //     if(splitLine[2].Contains(Constants.registerChar)) isRegisterMode = true;
+            //     else {
+            //         output += AssembleOpperand(splitLine[2]);
+            //     }
+            //     break;
+            
         }
         return output;
     }
