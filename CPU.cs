@@ -4,6 +4,8 @@ class CPU {
     int ProgramCounter = 0;
 
     long ALU = 0;
+
+    CPSRFlags CPSR = new CPSRFlags();
     Register MemoryAddressRegister = new Register();
     Register memoryDataRegister = new Register();
     machineCodeLine instructionRegister;
@@ -19,6 +21,7 @@ class CPU {
     }
 
     public void FetchDecodeExecCycle () {
+        Console.WriteLine($"PC: {ProgramCounter}");
         Fetch();
         Decode();
         Execute(); 
@@ -41,10 +44,10 @@ class CPU {
         instructionRegister.arguments.Add((registerValues & 0x0F));
         instructionRegister.arguments.Add((registerValues & 0xF0));
 
-        int signBit = (int)(memoryDataRegister.GetRegister() >> Constants.signBitOffset * Constants.bitsPerNibble) & 1;
+        int signBit = (int)(memoryDataRegister.GetRegister() >> Constants.signBitOffset * Constants.bitsPerNibble) & 0xF;
         instructionRegister.AddressMode = signBit;
 
-        long mask = (1L << Constants.signBitOffset * Constants.bitsPerNibble) - 1;
+        long mask = (1L << (Constants.signBitOffset * Constants.bitsPerNibble)) - 1;
         instructionRegister.arguments.Add((int)(memoryDataRegister.GetRegister() & mask));
     }
 
@@ -52,6 +55,8 @@ class CPU {
         switch (instructionRegister.instruction) {
             default:
                 throw new System.ArgumentException("invalid instruction passed to execute");
+            case 0: //label, do nothing
+                break;
             case 1: 
                 LDR();
                 break;
@@ -64,7 +69,18 @@ class CPU {
             case 4: //SUB
                 SUB();
                 break;
-                
+            case 5: //MOV
+                MOV();
+                break;
+            case 6: //CMP
+                CMP();
+                break;
+            case 7: //B
+                B();
+                break;
+            case 8: //BEQ
+                BEQ();
+                break;  
         }
 
         void LDR() {
@@ -98,7 +114,7 @@ class CPU {
             }
             ALU = memoryDataRegister.GetRegister();
             memoryDataRegister.SetRegister(registers[instructionRegister.arguments[1]].GetRegister());
-            ALU += memoryDataRegister.GetRegister();
+                ALU += memoryDataRegister.GetRegister();
             registers[instructionRegister.arguments[0]].SetRegister(ALU);
         }
 
@@ -115,13 +131,61 @@ class CPU {
             }
             ALU = memoryDataRegister.GetRegister();
             memoryDataRegister.SetRegister(registers[instructionRegister.arguments[1]].GetRegister());
-            ALU -= memoryDataRegister.GetRegister();
+                ALU -= memoryDataRegister.GetRegister();
             registers[instructionRegister.arguments[0]].SetRegister(ALU);
+        }
+
+        void MOV() {
+            if(instructionRegister.AddressMode == Constants.addressIndicator){
+                MemoryAddressRegister.SetRegister(instructionRegister.arguments[2]);
+                memoryDataRegister.SetRegister(RAM.QuereyAddress(MemoryAddressRegister.GetRegister()));
+                Console.WriteLine("MOV command used like LDR, consider using LDR instead");
+            } else if (instructionRegister.AddressMode == Constants.registerIndicator) {
+                MemoryAddressRegister.SetRegister(instructionRegister.arguments[2]);
+                memoryDataRegister.SetRegister(registers[MemoryAddressRegister.GetRegister()].GetRegister());
+            }
+            else {
+                memoryDataRegister.SetRegister(instructionRegister.arguments[2]);
+            }
+            registers[instructionRegister.arguments[0]].SetRegister(memoryDataRegister.GetRegister());
+        }
+    
+        void CMP() {
+            if(instructionRegister.AddressMode == Constants.addressIndicator) {
+                MemoryAddressRegister.SetRegister(instructionRegister.arguments[2]);
+                memoryDataRegister.SetRegister(RAM.QuereyAddress(MemoryAddressRegister.GetRegister()));
+            } else if(instructionRegister.AddressMode == Constants.registerIndicator) {
+                MemoryAddressRegister.SetRegister(instructionRegister.arguments[2]);
+                memoryDataRegister.SetRegister(registers[MemoryAddressRegister.GetRegister()].GetRegister());
+            }
+            else {
+                memoryDataRegister.SetRegister(instructionRegister.arguments[2]);
+            }
+            ALU = memoryDataRegister.GetRegister();
+            memoryDataRegister.SetRegister(registers[instructionRegister.arguments[1]].GetRegister());
+            try {
+                ALU -= memoryDataRegister.GetRegister();
+            } catch (OverflowException) {
+                CPSR = CPSRFlags.Overflow;
+                ALU += 1 << 32;
+                ALU -= memoryDataRegister.GetRegister();
+            }
+
+            if(ALU == 0) CPSR = CPSRFlags.Zero;
+            if(ALU < 0) CPSR = CPSRFlags.Negative;
+        }
+    
+        void B () {
+
+        }
+
+        void BEQ () {
+
         }
     }
 
     public void DumpRegisters(string fileName, string DumpPath = "dumps") {
-        string[] memoryDump = new string[registers.Length + 4];
+        string[] memoryDump = new string[registers.Length + 5];
 
         for(int i = 0; i < registers.Length; i++) {
             memoryDump[i] = $" register {i}: {registers[i].DumpRegister()}";
@@ -130,6 +194,7 @@ class CPU {
         memoryDump[registers.Length + 1] = $" ALU: {ALU}";
         memoryDump[registers.Length + 2] = $" MAR: {MemoryAddressRegister.DumpRegister()}";
         memoryDump[registers.Length + 3] = $" MDR: {memoryDataRegister.DumpRegister()}";
+        memoryDump[registers.Length + 4] = $" CPSR: {CPSR}";
 
         System.IO.Directory.CreateDirectory($"./{DumpPath}");
         fileName = DumpPath + "/" + fileName + ".Dump";

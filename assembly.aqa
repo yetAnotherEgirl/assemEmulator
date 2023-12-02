@@ -1,3 +1,7 @@
-LDR r0 4
-SUB r1 r0 5
-STR r1 6
+MOV r1 #1
+loop
+LDR r0 11
+SUB r0 r0 r1
+CMP r0 #0
+B loop
+

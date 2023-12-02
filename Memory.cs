@@ -1,3 +1,5 @@
+using System.Reflection.Emit;
+
 namespace assemEmulator;
 
 class Memory {
@@ -8,11 +10,15 @@ class Memory {
     }
 
     public long QuereyAddress(long address) {
+        if (address > memory.Length) 
+        throw new System.ArgumentException("address out of bounds");
         return memory[address];
     }
 
     public void SetAddress(long address, long value) {
         if (address > memory.Length) throw new System.ArgumentException("address out of bounds");
+        if (memory[address] != 0) Console.WriteLine("warning: overwriting memory");
+        if (memory[address] > Constants.opCodeOffset * Constants.bitsPerNibble) Console.WriteLine("warning: overwtiting what appears to be machine code");
         memory[address] = value;
     }
 
@@ -30,7 +36,7 @@ class Memory {
 
     public void LoadMachineCode(List<long> code, int address = 0) {
         if(address + code.Count > memory.Length) throw new System.ArgumentException("code too large for memory");
-        if(address + code.Count  > memory.Length - 3) Console.WriteLine("warning: code may be too large for memory");
+        if(address + code.Count  > memory.Length - 3) Console.WriteLine("warning: code with variables may be too large for memory");
         for (int i = address; i < code.Count; i++) {
             memory[i] = code[i];
         }

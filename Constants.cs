@@ -13,3 +13,10 @@ public static class Constants {
     public const int signBitOffset = 11;
     public const int registerOffset = 12;
 }
+
+
+enum CPSRFlags {
+    Zero = 0,
+    Negative = 1,
+    Overflow = 2
+}

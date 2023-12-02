@@ -3,11 +3,12 @@ using System.Reflection.PortableExecutable;
 
 namespace assemEmulator;
 
+//https://filestore.aqa.org.uk/resources/computing/AQA-75162-75172-ALI.PDF
 
 
 class Assembler {
     
-    public readonly string[] instructionSet = {"LDR", "STR", "ADD", "SUB"};
+    public readonly string[] instructionSet = {"LDR", "STR", "ADD", "SUB", "MOV", "CMP", "B", "BEQ"};
 
     List<long> machineCode = new List<long>();
 
@@ -21,6 +22,7 @@ class Assembler {
         foreach(string assemblyLine in assemblyLineList) {
             machineCode.Add(CompileAssemblyLine(assemblyLine));
         }
+
     }
 
     public long AssembleOpCode (int opCode) {    
@@ -49,19 +51,19 @@ class Assembler {
         long output = Constants.addressIndicator;
 
         if (opperand[0] == Constants.decimalChar) {
-            output = Constants.decimalIndicator;
+            output = ((long)Constants.decimalIndicator) << (Constants.signBitOffset * Constants.bitsPerNibble);
             try {
-                output = long.Parse(opperand.Substring(1));
+                output += long.Parse(opperand.Substring(1));
             } catch {
                 throw new System.ArgumentException("invalid decimal opperand");
             }
         }
         else if (opperand[0] == Constants.registerChar) {
-            output = Constants.registerIndicator;
+            output = ((long)Constants.registerIndicator) << (Constants.signBitOffset * Constants.bitsPerNibble);
             try {
-                output = long.Parse(opperand.Substring(1));
+                output += long.Parse(opperand.Substring(1));
             } catch {
-                throw new System.ArgumentException("invalid hex opperand");
+                throw new System.ArgumentException("invalid register opperand");
             }
         }
         else{
@@ -92,6 +94,15 @@ class Assembler {
         return memoryReference;
     }
 
+    public long AssembleLabel(ref string[] line, string label) {
+        
+        long output = Array.IndexOf(line, label);
+
+        if (output == -1) throw new System.ArgumentException("invalid label");
+
+        return output;
+    }
+    
     public long CompileAssemblyLine(string assemblyLine) {
         if (string.IsNullOrEmpty(assemblyLine)) throw new System.ArgumentException("empty string passed to assembleLine");
         
@@ -99,12 +110,17 @@ class Assembler {
             int commentStart = assemblyLine.IndexOf(Constants.commentChar);
             if (commentStart != -1) assemblyLine = assemblyLine.Substring(0, commentStart);
         }
-
+        if (string.IsNullOrEmpty(assemblyLine)) return 0;
         string[] splitLine = assemblyLine.Split(' ');
         if (Array.IndexOf(splitLine, "") != -1) splitLine = splitLine.Where(x => x != "").ToArray();
 
         int opCode = Array.IndexOf(instructionSet, splitLine[0]) + 1;
+        if (opCode == 0) {
+            if (splitLine.Length > 1) throw new System.ArgumentException("invalid Label, must be 1 word only");
 
+            //Console.WriteLine("label recognised");
+            return 0;
+        }
         long output = 0;
 
         output += AssembleOpCode(opCode);
@@ -113,33 +129,39 @@ class Assembler {
         {
             default:
                 throw new System.ArgumentException("invalid OpCode");
-            case 1:
+            case 1: //LDR
                 output += AssembleRegister(splitLine[1]);
                 output += AssembleMemoryReference(splitLine[2]);
                 break;
-            case 2:
+            case 2: //STR
                 output += AssembleRegister(splitLine[1]);
                 output += AssembleMemoryReference(splitLine[2]);
                 break;
-            case 3:
+            case 3: //ADD
                 output += AssembleRegister(splitLine[1]);
                 output += AssembleRegister(splitLine[2], 1);
                 output += AssembleOpperand(splitLine[3]);
                 break;
-            case 4:
+            case 4: //SUB
                 output += AssembleRegister(splitLine[1]);
                 output += AssembleRegister(splitLine[2], 1);
                 output += AssembleOpperand(splitLine[3]);
                 break;
-            // case 5:
-            //     output += AssembleRegister(splitLine[1]);
-            //     bool isRegisterMode = false;
-            //     if(splitLine[2].Contains(Constants.registerChar)) isRegisterMode = true;
-            //     else {
-            //         output += AssembleOpperand(splitLine[2]);
-            //     }
-            //     break;
-            
+            case 5: //MOV
+                output += AssembleRegister(splitLine[1]);
+                output += AssembleOpperand(splitLine[2]);
+                break;
+            case 6: //CMP
+                output += AssembleRegister(splitLine[1]);
+                output += AssembleOpperand(splitLine[2]);
+                break;
+            case 7: //B
+                output += AssembleLabel(ref splitLine, splitLine[1]);
+                break;
+            case 8: //BEQ
+                output += AssembleLabel(ref splitLine, splitLine[1]);
+                break;
+ 
         }
         return output;
     }
