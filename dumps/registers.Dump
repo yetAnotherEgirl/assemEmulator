@@ -1,5 +1,5 @@
- register 0: FFFFFFFFFFFFFFF7
- register 1: 1
+ register 0: A
+ register 1: 0
  register 2: 0
  register 3: 0
  register 4: 0
@@ -11,8 +11,8 @@
  register 10: 0
  register 11: 0
  register 12: 0
- PC: 6
- ALU: 9
- MAR: 5
- MDR: 700000000000001
- CPSR: Zero
+ PC: 7
+ ALU: -10
+ MAR: 6
+ MDR: 1200000000000000
+ CPSR: Negative

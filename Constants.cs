@@ -2,6 +2,7 @@ namespace assemEmulator;
 
 public static class Constants {
     public const char commentChar = ';';
+    public const char preProcessorIndicator = '*';
     public const char decimalChar = '#';
     public const int decimalIndicator = 1;
     public const char registerChar = 'r';

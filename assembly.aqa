@@ -1,7 +1,9 @@
-MOV r1 #1
-loop
-LDR r0 11
-SUB r0 r0 r1
-CMP r0 #0
-B loop
+* EXTENDED
 
+loop
+INPUT r0
+OUTPUT r0
+CMP r0 #0
+BEQ loop
+DUMP all
+HALT

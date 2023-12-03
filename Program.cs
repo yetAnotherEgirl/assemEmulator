@@ -23,18 +23,7 @@ class Program {
         ram.LoadMachineCode(machineCode);
         ram.SetAddress(11, 10);
 
-        for (int i = 0; i < machineCode.Count(); i++) {
-            try {cpu.FetchDecodeExecCycle();}
-            catch (System.ArgumentException e) {
-                Console.WriteLine(e.Message);
-                ram.DumpMemory("memory");
-                cpu.DumpRegisters("registers");
-                break;
-            }
-        }
-
-        ram.DumpMemory("memory");
-        cpu.DumpRegisters("registers");
+        cpu.Run();
     }
 }
 
