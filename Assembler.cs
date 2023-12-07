@@ -49,7 +49,7 @@ class Assembler {
 
             if (splitInstruction[0] == "INCLUDE") {
                 if (splitInstruction.Length != 3) throw new System.ArgumentException("invalid USING instruction");
-                string path = Path.GetFullPath(splitInstruction[1]);
+                string path = Path.GetFullPath(splitInstruction[1] + ".aqa");
                 string assembly = System.IO.File.ReadAllText(path);
 
                 List<string> assemblyList = assembly.Split('\n').ToList();
@@ -61,6 +61,10 @@ class Assembler {
                 }
                 else if(splitInstruction[2] == "LAST") {
                     assemblyLineList.AddRange(assemblyList);
+                }
+                else if(splitInstruction[2] == "HERE") {
+                    int index = assemblyLineList.IndexOf(preProcessorInstruction);
+                    assemblyLineList.InsertRange(index, assemblyList);
                 }
                 else {
                     throw new System.ArgumentException("invalid USING instruction");

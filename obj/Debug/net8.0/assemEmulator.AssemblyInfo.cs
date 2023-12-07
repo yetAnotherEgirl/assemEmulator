@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("assemEmulator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6297fe6e9a47b55d3658fce5a0fc1959c7641a94")]
 [assembly: System.Reflection.AssemblyProductAttribute("assemEmulator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("assemEmulator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

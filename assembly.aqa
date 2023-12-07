@@ -1,9 +1,8 @@
 * EXTENDED
 
-loop
-INPUT r0
+MOV r0 #1
+MOV r1 #1
+* INCLUDE addNum HERE
+
 OUTPUT r0
-CMP r0 #0
-BEQ loop
-DUMP all
 HALT
