@@ -26,6 +26,15 @@ class Assembler {
 
         List<string> assemblyLineList = assembly.Split('\n').ToList();
         assemblyLineList = assemblyLineList.Where(x => x != "").ToList();
+
+        for (int i = 0; i < assemblyLineList.Count; i++)
+        {
+            string assemblyLine = assemblyLineList[i];
+            int slashIndex = assemblyLine.IndexOf("\r");
+            if (slashIndex != -1) assemblyLineList[assemblyLineList.IndexOf(assemblyLine)] = assemblyLine.Substring(0, slashIndex);
+            assemblyLineList[i] = assemblyLine;
+        }
+
         PreProcessAssembly(ref assemblyLineList);
         foreach(string assemblyLine in assemblyLineList) {
             machineCode.Add(CompileAssemblyLine(assemblyLine));
@@ -42,7 +51,7 @@ class Assembler {
             string[] splitInstruction = instruction.Split(' ');
             if (Array.IndexOf(splitInstruction, "") != -1) splitInstruction = splitInstruction.Where(x => x != "").ToArray();
 
-            if (splitInstruction[0] ==  "EXTENDED") {
+            if (splitInstruction[0] ==  "EXTENDED" || splitInstruction[0] == "EXTENDED\r") {
                 if (splitInstruction.Length != 1) throw new System.ArgumentException("invalid EXTENDED instruction");
                 extendedInstructionSetEnabled = true;
             }
@@ -279,10 +288,10 @@ class Assembler {
     public long AssembleDumpMode (string mode) {
         long output = 0;
         switch (mode) {
-            case "memory":
+            case "memory\r":
                 output = 0;
                 break;
-            case "registers":
+            case "registers\r":
                 output = 1;
                 break;
             case "all":

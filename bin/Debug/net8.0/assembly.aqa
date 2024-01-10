@@ -1,0 +1,8 @@
+*EXTENDED
+MOV r1 #5
+MOV r2 #6
+ADD r3 r2 #5
+STR r3 100
+
+DUMP memory
+HALT

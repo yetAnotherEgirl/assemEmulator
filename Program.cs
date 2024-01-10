@@ -10,7 +10,7 @@ class Program {
     static void Main(string[] args) {
         Assembler assembler = new Assembler();
 
-        Memory ram = new Memory(20);
+        Memory ram = new Memory(200);
         CPU cpu = new CPU(ref ram);
 
         List<long> machineCode = new List<long>();
